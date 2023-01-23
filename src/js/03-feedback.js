@@ -1,48 +1,42 @@
 import throttle from 'lodash.throttle';
 
-const contFormEl = document.querySelector('.feedback-form');
+const FORM_DATA = 'feedback-form-state';
+const form = document.querySelector('.feedback-form');
 const email = document.querySelector('.feedback-form input');
 const message = document.querySelector('.feedback-form textarea');
-const THE_KEY = 'feedback-form-state';
-const userInfo = {};
+let userData = {};
 
-const fillContactFormFields = () => {
-  try {
-    const userInfoFromLS = JSON.parse(localStorage.getItem('THE_KEY'));
+fillData();
 
-    if (userInfoFromLS === null) {
-      return;
+form.addEventListener('input', throttle(saveData, 500));
+form.addEventListener('submit', submitData);
+
+function saveData(event){
+    userData[event.target.name] = event.target.value;
+    localStorage.setItem(FORM_DATA, JSON.stringify(userData));
+}
+
+function fillData(){
+    const data = localStorage.getItem(FORM_DATA);
+    if (data) {
+        userData = JSON.parse(localStorage.getItem(FORM_DATA));
+        if(userData.email) {
+            email.value = userData.email;
+        }
+        if(userData.message) {
+            message.value = userData.message;
+        }
     }
-
-      contFormEl.email.value = userInfoFromLS[email];
-      contFormEl.message.value = userInfoFromLS[message];
-    
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-fillContactFormFields();
-
-const onContactFormItemChange = event => {
-  const { target } = event;
-
-  const name = target.name;
-  const value = target.value;
-
-  userInfo[name] = value;
-
-  localStorage.setItem('THE_KEY', JSON.stringify(userInfo));
-};
-
-const onContactFormSubmit = event => {
+}
+function submitData(event){
   event.preventDefault();
 
-  contFormEl.reset();
-    localStorage.removeItem('THE_KEY');
-    console.log(userInfo);
-};
-
-contFormEl.addEventListener('input', throttle(onContactFormItemChange, 500));
-contFormEl.addEventListener('submit', onContactFormSubmit);
-
+  if (email.value === '' || message.value === '')  {
+        alert('Please fill in all the fields!');
+        return;
+      }
+    console.log(userData);
+    userData = {};
+    form.reset();
+    localStorage.removeItem(FORM_DATA);
+}
